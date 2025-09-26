@@ -2,6 +2,7 @@ const express = require("express");
 
 const keccak256 = require("ethereum-cryptography/keccak.js").keccak256;
 const secp256k1 = require("ethereum-cryptography/secp256k1").secp256k1;
+const utf8ToBytes = require('ethereum-cryptography/utils').utf8ToBytes;
 
 const app = express();
 const cors = require("cors");
@@ -26,9 +27,9 @@ app.post("/send", (req, res) => {
   const transaction = req.body;
   console.log(transaction);
   const { sender, recipient, amount, hexSign } = transaction;
-  const senderHash = keccak256(Uint8Array.from(sender));
-  const isSigned = secp256k1.verify(hexSign, senderHash, sender);
-  console.log("Is signed: ", isSigned);
+  const message = `${sender}:${recipient}:${amount}`;
+  const messageHash = keccak256(utf8ToBytes(message));
+  const isSigned = secp256k1.verify(hexSign, messageHash, sender);
   if (isSigned){
     setInitialBalance(sender);
     setInitialBalance(recipient);
